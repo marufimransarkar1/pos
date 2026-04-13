@@ -3,11 +3,17 @@ import axios from 'axios';
 // Detect if the app is running on Vercel or locally
 const isProduction = import.meta.env.PROD;
 
+// const api = axios.create({
+//   // Use absolute URL for Vercel, relative path for local Vite proxy
+//   baseURL: isProduction 
+//     ? 'https://posbackend-ten.vercel.app/api' 
+//     : '/api',
+//   withCredentials: true
+// });
+
 const api = axios.create({
-  // Use absolute URL for Vercel, relative path for local Vite proxy
-  baseURL: isProduction 
-    ? 'https://posbackend-ten.vercel.app/api' 
-    : '/api',
+  // Use a relative path. Vercel will see "/api" and use the rewrite rule.
+  baseURL: '/api', 
   withCredentials: true
 });
 
