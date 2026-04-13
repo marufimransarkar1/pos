@@ -1,12 +1,12 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ShoppingCart, Eye, EyeOff } from 'lucide-react';
-import toast from 'react-hot-toast';
-import useAuthStore from '../store/authStore.js';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { ShoppingCart, Eye, EyeOff } from "lucide-react";
+import toast from "react-hot-toast";
+import useAuthStore from "../store/authStore.js";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
   const { login } = useAuthStore();
@@ -14,23 +14,43 @@ export default function LoginPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // console.log("Attempting login for:", email); // DEBUG
     setLoading(true);
-    
-    const result = await login(email, password);
-    // console.log("Login Result:", result); // DEBUG
-    
-    // ... rest of logic
-    if (result.success) {
-      toast.success('Login successful!');
-      navigate('/');
-    } else {
-      // If result.success is false, use the message returned from Zustand
-      toast.error(result.message || 'Login failed');
-      setLoading(false); // Stop loading if login fails
+
+    try {
+      const result = await login(email, password);
+      if (result && result.success) {
+        toast.success("Login successful!");
+        navigate("/", { replace: true }); // 'replace' helps prevent back-button loops
+      } else {
+        toast.error(result?.message || "Login failed");
+      }
+    } catch (error) {
+      console.error("Login Crash:", error);
+      toast.error("A system error occurred.");
+    } finally {
+      setLoading(false);
     }
   };
-  
+
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   // console.log("Attempting login for:", email); // DEBUG
+  //   setLoading(true);
+
+  //   const result = await login(email, password);
+  //   // console.log("Login Result:", result); // DEBUG
+
+  //   // ... rest of logic
+  //   if (result.success) {
+  //     toast.success('Login successful!');
+  //     navigate('/');
+  //   } else {
+  //     // If result.success is false, use the message returned from Zustand
+  //     toast.error(result.message || 'Login failed');
+  //     setLoading(false); // Stop loading if login fails
+  //   }
+  // };
+
   // const handleSubmit = async (e) => {
   //   e.preventDefault();
   //   setLoading(true);
@@ -83,7 +103,7 @@ export default function LoginPage() {
               </label>
               <div className="relative">
                 <input
-                  type={showPw ? 'text' : 'password'}
+                  type={showPw ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -107,12 +127,20 @@ export default function LoginPage() {
             >
               {loading ? (
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              ) : 'Sign In'}
+              ) : (
+                "Sign In"
+              )}
             </button>
           </form>
 
           <p className="text-center text-xs text-slate-400 mt-6">
-            First time? <a href="/setup" className="text-brand-600 hover:underline font-medium">Run Setup Wizard</a>
+            First time?{" "}
+            <a
+              href="/setup"
+              className="text-brand-600 hover:underline font-medium"
+            >
+              Run Setup Wizard
+            </a>
           </p>
         </div>
       </div>
