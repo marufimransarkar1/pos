@@ -47,6 +47,20 @@ const ProtectedRoute = ({ children, roles }) => {
   return children;
 };
 
+const PublicRoute = ({ children }) => {
+  const { token, isLoading } = useAuthStore();
+
+  if (isLoading) {
+    return <div className="flex items-center justify-center h-screen">Loading...</div>;
+  }
+
+  if (token) {
+    return <Navigate to="/" replace />;  // redirect if already logged in
+  }
+
+  return children;
+};
+
 export default function App() {
   const { fetchMe, isAuthenticated } = useAuthStore();
   const { initDarkMode, fetchSettings } = useSettingsStore();
@@ -71,7 +85,15 @@ export default function App() {
       />
       <Routes>
         <Route path="/setup" element={<SetupWizard />} />
-        <Route path="/login" element={<LoginPage />} />
+        {/* <Route path="/login" element={<LoginPage />} /> */}
+        <Route
+          path="/login"
+          element={
+            <PublicRoute>
+              <LoginPage />
+            </PublicRoute>
+          }
+        />
         {/* <Route
           path="/"
           element={
