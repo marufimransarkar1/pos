@@ -10,12 +10,14 @@ import {
   Check,
   User,
   UserPlus,
+  Camera,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import api from "../lib/api.js";
 import { usePOSStore } from "../store/index.js";
 import { useSettingsStore } from "../store/index.js";
 import { Modal } from "../components/ui/index.jsx";
+import { Html5QrcodeScanner } from "html5-qrcode";
 
 const PaymentMethods = ["cash", "card", "mobile_banking"];
 
@@ -25,6 +27,7 @@ export default function POSPage() {
   const [loading, setLoading] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
   const [processing, setProcessing] = useState(false);
+  const [showScanner, setShowScanner] = useState(false);
   const searchRef = useRef(null);
 
   // Customer search states
@@ -65,6 +68,44 @@ export default function POSPage() {
     getTotal,
   } = usePOSStore();
 
+  // Helper for barcode lookup (used by scanner and manual Enter)
+  const handleBarcodeLookup = async (barcode) => {
+    try {
+      const { data } = await api.get(`/products/barcode/${barcode.trim()}`);
+      addToCart(data.data);
+      setSearch("");
+      toast.success(`Added: ${data.data.name}`);
+    } catch {
+      toast.error("Product not found by barcode");
+    }
+  };
+
+  // Scanner success handler
+  const handleScanSuccess = (decodedText) => {
+    setSearch(decodedText);
+    setShowScanner(false);
+    handleBarcodeLookup(decodedText);
+  };
+
+  // Initialize scanner when modal opens
+  useEffect(() => {
+    if (showScanner) {
+      const scanner = new Html5QrcodeScanner(
+        "qr-reader",
+        { fps: 10, qrbox: 250 },
+        false
+      );
+      scanner.render(handleScanSuccess, (error) => {
+        // Silently ignore scan errors
+        console.warn(error);
+      });
+
+      return () => {
+        scanner.clear().catch(console.error);
+      };
+    }
+  }, [showScanner]);
+
   // Search products (debounced)
   useEffect(() => {
     const t = setTimeout(async () => {
@@ -87,14 +128,7 @@ export default function POSPage() {
   // Barcode scan (Enter key in search)
   const handleSearchKey = async (e) => {
     if (e.key === "Enter" && search.trim()) {
-      try {
-        const { data } = await api.get(`/products/barcode/${search.trim()}`);
-        addToCart(data.data);
-        setSearch("");
-        toast.success(`Added: ${data.data.name}`);
-      } catch {
-        toast.error("Product not found by barcode");
-      }
+      handleBarcodeLookup(search.trim());
     }
   };
 
@@ -138,7 +172,7 @@ export default function POSPage() {
 
   const handleSelectCustomer = (cust) => {
     setCustomer(cust);
-    setCustomerSearch(""); // Clear search
+    setCustomerSearch("");
     setShowCustomerDropdown(false);
   };
 
@@ -149,7 +183,6 @@ export default function POSPage() {
   };
 
   const openAddCustomerModal = () => {
-    // Pre-fill phone if search looks like a number
     const phoneCandidate = customerSearch.trim();
     setNewCustomerForm({
       name: "",
@@ -232,9 +265,16 @@ export default function POSPage() {
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={handleSearchKey}
               placeholder="Search product or scan barcode (Enter)..."
-              className="input pl-10"
+              className="input pl-10 pr-10"
               autoFocus
             />
+            <button
+              onClick={() => setShowScanner(true)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-brand-600"
+              title="Scan barcode with camera"
+            >
+              <Camera size={18} />
+            </button>
           </div>
         </div>
 
@@ -338,7 +378,6 @@ export default function POSPage() {
                     : customerSearch
                 }
                 onChange={(e) => {
-                  // If a customer is selected and user starts typing, clear selection
                   if (customer) setCustomer(null);
                   setCustomerSearch(e.target.value);
                   setShowCustomerDropdown(true);
@@ -362,14 +401,15 @@ export default function POSPage() {
                 ref={dropdownRef}
                 className="absolute z-50 left-0 right-0 mt-2 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 max-h-64 overflow-y-auto"
               >
-                {/* Walk-in option */}
                 <button
                   onClick={handleWalkIn}
                   className="w-full px-4 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
                 >
                   <User size={14} className="text-slate-400" />
                   <span>Walk-in Customer</span>
-                  {!customer && <Check size={14} className="ml-auto text-brand-600" />}
+                  {!customer && (
+                    <Check size={14} className="ml-auto text-brand-600" />
+                  )}
                 </button>
 
                 {isSearchingCustomers ? (
@@ -553,6 +593,26 @@ export default function POSPage() {
           </button>
         </div>
       </div>
+
+      {/* Scanner Modal */}
+      {showScanner && (
+        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-800 rounded-xl w-full max-w-md overflow-hidden">
+            <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
+              <h3 className="font-semibold text-slate-900 dark:text-white">
+                Scan Barcode
+              </h3>
+              <button
+                onClick={() => setShowScanner(false)}
+                className="text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div id="qr-reader" className="w-full" />
+          </div>
+        </div>
+      )}
 
       {/* Checkout Modal */}
       <Modal
