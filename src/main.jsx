@@ -11,3 +11,12 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     </AppInitializer>
   </React.StrictMode>
 );
+
+// Register the service worker from the public folder
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(reg => console.log('Service Worker registered!', reg))
+      .catch(err => console.log('Registration failed', err));
+  });
+}
