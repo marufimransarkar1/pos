@@ -3,6 +3,10 @@ import { Plus, Edit, Trash2, Users } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../lib/api.js';
 import { PageHeader, Table, Pagination, SearchInput, Modal, ConfirmDialog } from '../components/ui/index.jsx';
+import { useSettingsStore } from "../store/index.js";
+
+
+
 
 function EntityPage({ title, endpoint, columns: colDefs, formFields, defaultForm }) {
   const [items, setItems] = useState([]);
@@ -97,6 +101,9 @@ function EntityPage({ title, endpoint, columns: colDefs, formFields, defaultForm
 }
 
 export function CustomersPage() {
+  
+  const { settings } = useSettingsStore();
+  const sym = settings?.currencySymbol || "$";
   return (
     <EntityPage
       title="Customers"
@@ -107,7 +114,7 @@ export function CustomersPage() {
         { key: 'phone', label: 'Phone', render: v => v || '—' },
         { key: 'email', label: 'Email', render: v => v || '—' },
         { key: 'loyaltyPoints', label: 'Points', render: v => <span className="badge-blue">{v || 0} pts</span> },
-        { key: 'totalPurchase', label: 'Total Spent', render: v => `$${Number(v || 0).toFixed(2)}` },
+        { key: 'totalPurchase', label: 'Total Spent', render: v => `${sym}${Number(v || 0).toFixed(2)}` },
       ]}
       formFields={[
         { name: 'name', label: 'Full Name *', placeholder: 'John Doe' },
