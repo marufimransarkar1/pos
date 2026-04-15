@@ -66,7 +66,7 @@ const ProductPriceTag = forwardRef(({ product, settings }, ref) => {
         <Barcode
           value={barcodeValue}
           format="CODE128"
-          renderer="img"      // 'img' is best for mobile printing compatibility
+          renderer="canvas"      // 'img' is best for mobile printing compatibility
           width={1.2}         // REDUCED: Allows more characters to fit without blurring
           height={40}         // Sufficient height for scanning
           margin={0}
