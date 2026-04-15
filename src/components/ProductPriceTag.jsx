@@ -1,154 +1,91 @@
 // components/ProductPriceTag.jsx
-import React, { forwardRef } from "react";
-import Barcode from "react-barcode";
+import React, { forwardRef } from 'react';
+import Barcode from 'react-barcode';
 
 const ProductPriceTag = forwardRef(({ product, settings }, ref) => {
   const { name, barcode, description, sellingPrice, sku } = product;
-  const sym = settings?.currencySymbol || "$";
+  const sym = settings?.currencySymbol || '$';
   const taxRate = settings?.taxRate || 0;
-  const shopName = settings?.businessName || "My Store";
-  const taxLabel = settings?.taxName || "Tax";
+  const shopName = settings?.businessName || 'My Store';
+  const taxLabel = settings?.taxName || 'Tax';
 
   const priceWithTax = sellingPrice * (1 + taxRate);
-  const barcodeValue = barcode || sku || "0000000000";
+  const barcodeValue = barcode || sku || '0000000000';
 
   const styles = {
     container: {
-      width: "2.5in",
-      padding: "0.15in",
-      paddingTop: "0.3in", // ← top spacing preserved on page breaks
-      border: "1px solid #e2e8f0",
-      borderRadius: "12px",
-      backgroundColor: "#ffffff",
-      boxShadow: "0 2px 4px rgba(0,0,0,0.02)",
-      fontFamily:
-        "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-      boxSizing: "border-box",
-      margin: "0 auto 0.2in auto", // ← bottom margin only (separates tags on same page)
-      pageBreakInside: "avoid",
-      breakInside: "avoid",
-      display: "flex",
-      flexDirection: "column",
+      width: '2.5in', // This is quite narrow for 20+ characters
+      padding: '0.1in',
+      paddingTop: '0.2in',
+      border: '1px solid #e2e8f0',
+      borderRadius: '8px',
+      backgroundColor: '#ffffff',
+      fontFamily: "'Inter', sans-serif",
+      boxSizing: 'border-box',
+      margin: '0 auto 0.2in auto',
+      pageBreakInside: 'avoid',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center', // Center everything
     },
-    header: {
-      textAlign: "center",
-      marginBottom: "10px",
-    },
-    shopName: {
-      fontSize: "16px",
-      fontWeight: "700",
-      margin: "0 0 2px",
-      color: "#0f172a",
-      letterSpacing: "-0.01em",
-    },
-    subHeader: {
-      fontSize: "9px",
-      color: "#64748b",
-      margin: 0,
-      textTransform: "uppercase",
-      letterSpacing: "0.5px",
-    },
-    productSection: {
-      marginBottom: "8px",
-    },
+    // ... (other styles remain similar, but ensure text doesn't overflow)
     productName: {
-      fontSize: "16px",
-      fontWeight: "600",
-      margin: "0 0 4px",
-      color: "#1e293b",
-      lineHeight: 1.3,
-    },
-    description: {
-      fontSize: "10px",
-      color: "#475569",
-      margin: "0 0 6px",
-      lineHeight: 1.4,
-    },
-    priceRow: {
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "baseline",
-      borderBottom: "1px dashed #cbd5e1",
-      paddingBottom: "8px",
-      marginBottom: "10px",
-    },
-    priceLabel: {
-      fontSize: "11px",
-      color: "#64748b",
-      fontWeight: "500",
+      fontSize: '14px',
+      fontWeight: '700',
+      textAlign: 'center',
+      margin: '4px 0',
     },
     priceValue: {
-      fontSize: "22px",
-      fontWeight: "700",
-      color: "#0f172a",
-      letterSpacing: "-0.02em",
+      fontSize: '20px',
+      fontWeight: '800',
+      margin: '8px 0',
     },
     barcodeWrapper: {
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      justifyContent: "center",
-      marginTop: "4px",
-      maxWidth: "100%",
-      overflow: "hidden",
-    },
-    barcodeText: {
-      fontSize: "10px",
-      color: "#64748b",
-      marginTop: "4px",
-      letterSpacing: "1px",
-      fontFamily: "monospace",
-    },
-    footer: {
-      marginTop: "8px",
-      fontSize: "8px",
-      color: "#94a3b8",
-      textAlign: "center",
-      borderTop: "1px solid #f1f5f9",
-      paddingTop: "6px",
-    },
+      width: '100%',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      backgroundColor: 'white',
+      padding: '5px 0',
+    }
   };
 
   return (
     <div ref={ref} style={styles.container}>
-      <div style={styles.header}>
-        <h2 style={styles.shopName}>{shopName}</h2>
-        <p style={styles.subHeader}>Price Tag</p>
+      <div style={{ textAlign: 'center' }}>
+        <h2 style={{ fontSize: '12px', margin: 0 }}>{shopName}</h2>
       </div>
 
-      <div style={styles.productSection}>
-        <h3 style={styles.productName}>{name}</h3>
-        {description && <p style={styles.description}>{description}</p>}
-      </div>
+      <h3 style={styles.productName}>{name}</h3>
 
-      <div style={styles.priceRow}>
-        <span style={styles.priceLabel}>Price (incl. {taxLabel})</span>
-        <span style={styles.priceValue}>
-          {sym}
-          {priceWithTax.toFixed(2)}
-        </span>
+      <div style={styles.priceValue}>
+        {sym}{priceWithTax.toFixed(2)}
       </div>
 
       <div style={styles.barcodeWrapper}>
         <Barcode
           value={barcodeValue}
           format="CODE128"
-          renderer="canvas" // 1. Change from SVG to Canvas for sharper lines
-          width={2} // 2. Increased from 1.6 to 2 for thicker bars
-          height={50} // 3. Slightly taller bars help scanners line up
-          margin={10} // 4. Added "Quiet Zone" (white space) around the barcode
-          background="#ffffff" // 5. Explicitly set pure white background
-          lineColor="#000000" // 6. Explicitly set pure black bars
+          renderer="img"      // 'img' is best for mobile printing compatibility
+          width={1.2}         // REDUCED: Allows more characters to fit without blurring
+          height={40}         // Sufficient height for scanning
+          margin={0}
+          background="#ffffff"
+          lineColor="#000000"
           displayValue={false}
         />
-        <span style={styles.barcodeText}>{barcodeValue}</span>
+        <span style={{ fontSize: '9px', fontFamily: 'monospace', marginTop: '4px' }}>
+          {barcodeValue}
+        </span>
       </div>
 
-      <div style={styles.footer}>Thank you for shopping with us!</div>
+      <div style={{ fontSize: '8px', marginTop: '8px', color: '#94a3b8' }}>
+        Thank you!
+      </div>
     </div>
   );
 });
 
-ProductPriceTag.displayName = "ProductPriceTag";
+ProductPriceTag.displayName = 'ProductPriceTag';
 
 export default ProductPriceTag;
